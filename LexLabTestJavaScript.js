@@ -1,5 +1,3 @@
-// This will display an alert box in the browser
-alert("Welcome to the page!");
 
 // GLOBAL variable that saves user's input strings, as on_finish runs after
 // the textarea's contents have been cleared.
@@ -12,6 +10,35 @@ const jsPsych = initJsPsych({
         jsPsych.data.displayData()
     }
 });
+
+/**
+ * Modifies and places the current input recorded from
+ * the textarea box as data into the given data object
+ * for a jsPsych trial.
+ * 
+ * @param {object} data 
+ */
+function record_input_as_data(data) {
+    //split and add them to a list unless they are empty strings
+    data.words_list = current_input.split('\n').filter(Boolean);
+    data.number_of_words = data.words_list.length;
+}
+
+/**
+ * Clears current_input global variable and then
+ * prepares textarea input box for more text by
+ * giving it an event listener.
+ * 
+ * @param {string} textarea_id 
+ */
+function prepare_for_new_input(textarea_id) {
+    // reset input for new trial
+    current_input = "";
+    // record text as it is typed
+    document.getElementById(textarea_id).addEventListener('input', (event) => {
+        current_input = event.target.value;
+    });
+}
 
 // this trial shows the general display and teaches the user how to submit words
 var tutorial = {
@@ -37,7 +64,7 @@ var tutorial = {
         </p>
 
         <p style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Press ENTER to start
+            Press ENTER to start. You will have 60 seconds to enter words for each category.
         </p>
     `,
     choices: ['Enter']
@@ -61,22 +88,68 @@ var animals = {
         <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
     `,
     //key presses do not end the trial, only the timer
-    choices: '0', //should be "NO_KEYS" ///////////////////////////////////////////////////////////////////////////////////////////////////
+    choices: "NO_KEYS", 
+    trial_duration: 60000, // 60 second trial
 
     on_load: function() {
-        // reset input for new trial
-        current_input = "";
-        // record text as it is typed
-        document.getElementById('input_box').addEventListener('input', (event) => {
-            current_input = event.target.value;
-        });
+        prepare_for_new_input('input_box');
+
+        // mark duration of trial for later use
+        const trial_duration = 60000;
+    
+        // Get prime word text element
+        display_element = jsPsych.getDisplayElement();
+        var prime_word_text = display_element.querySelector('#prime_word');
+
+        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
+        const prime_words = [
+            {word: "Trivial", start_time: 50},
+            {word: "Vermin", start_time: 37},
+            {word: "Atlas", start_time: 12},
+            {word: "Arctic", start_time: 3}
+        ];
+        // !** Each listed object is the desired prime word
+        // followed by the time in seconds (after the start
+        // of the trial) at which the word should appear. **!
+        // 
+        // To make the Prime Word "blank" inbetween two others,
+        // simply add "-" as a word between two prime words with
+        // a start time of when you want the first word to dissappear.
+
+        //display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration); ////////////////////////////
+        
+        // set up interval to check trial timer for prime words
+        const timer_interval = setInterval(function() {
+            let current_time = performance.now();
+            const next_prime_word = prime_words.at(-1);
+            // modify start time to fit the actual millisecond timer
+            next_appearance_time = next_prime_word.start_time * 1000;
+            next_word = next_prime_word.word;
+            
+            // when we reach the start time of the next prime word:
+            if (current_time >= next_appearance_time) {
+                // display new word
+                prime_word_text.innerHTML = next_word;
+                //remove next word
+                prime_words.pop();
+            }
+
+            // Clear interval when time runs out ////////////////////////////////////////////////////////////////////
+            //if (current_time >= trial_duration) {
+            //    clearInterval(timer_interval)
+            //}
+        }, 100);
+        // ^^^ check runs every 0.1 seconds
+
+        // Ensure that interval is cleared when trial finishes
+        jsPsych.pluginAPI.setTimeout(function() {
+            clearInterval(timer_interval);
+        }, trial_duration);
     },
 
     // record data from this trial
     on_finish: function(data) {
-        //split and add them to a list unless they are empty strings
-        data.words_list = current_input.split('\n').filter(Boolean);
-        data.number_of_words = data.words_list.length;
+        record_input_as_data(data);
     }
 };
 

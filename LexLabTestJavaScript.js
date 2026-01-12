@@ -1,9 +1,17 @@
+/**
+ * @file This file is responsible for handling the operations of a
+ *       simple verbal fluency test.
+ * @description Manages receiving user inputted words, displaying category
+ *       prompts and prime words, trial timers, recording and outputting data,
+ *       and formatting trial stimuli.
+ * @author Nathaniel Branda
+ */
 
 // GLOBAL variable that saves user's input strings, as on_finish runs after
 // the textarea's contents have been cleared.
 current_input = "";
 
-// initialize library and jsPsych object
+// initialize jsPsych library and object
 const jsPsych = initJsPsych({
     on_finish: function() {
         // output all recorded data when all trials complete
@@ -16,7 +24,7 @@ const jsPsych = initJsPsych({
  * the textarea box as data into the given data object
  * for a jsPsych trial.
  * 
- * @param {object} data 
+ * @param {object} data a jsPsych data object for a given trial
  */
 function record_input_as_data(data) {
     //split and add them to a list unless they are empty strings
@@ -74,14 +82,12 @@ function display_prime_words_in_sequence(prime_words, prime_word_text, trial_dur
     }, trial_duration);
 }
 
+/// /// /// /// /// /// /// /// /// /// TRIALS /// /// /// /// /// /// /// /// /// ///
+
 // this trial shows the general display and teaches the user how to submit words
 var tutorial = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
-        <h1 style="margin-bottom: 90px; text-align: center; font-size: 60px">
-            Verbal Fluency Test
-        </h1>
-
         <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
             Category Words will appear here
         </h2>
@@ -107,9 +113,6 @@ var tutorial = {
 var animals = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
-        <h1 style="margin-bottom: 90px; text-align: center; font-size: 60px">
-            Verbal Fluency Test
-        </h1>
         <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
             Category: Animals
         </h2>
@@ -158,9 +161,6 @@ var animals = {
 var jobs = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `
-        <h1 style="margin-bottom: 90px; text-align: center; font-size: 60px">
-            Verbal Fluency Test
-        </h1>
         <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
             Category: Jobs
         </h2>
@@ -198,5 +198,89 @@ var jobs = {
     }
 };
 
-const timeline = [tutorial, animals];
+var colors = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `
+        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
+            Category: Colors
+        </h2>
+        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
+            -
+        </h3>
+        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
+    `,
+    //key presses do not end the trial, only the timer
+    choices: "NO_KEYS", 
+    trial_duration: 60000, // 60 second trial
+
+    on_load: function() {
+        prepare_for_new_input('input_box');
+
+        // mark duration of trial for later use
+        const trial_duration = 60000;
+        // Get prime word text element
+        display_element = jsPsych.getDisplayElement();
+        var prime_word_text = display_element.querySelector('#prime_word');
+
+        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
+        const prime_words = [
+            {word: "Dark", start_time: 53},
+            {word: "-", start_time: 43},
+            {word: "Music", start_time: 27},
+            {word: "-", start_time: 13},
+            {word: "Valuable", start_time: 3}
+        ];
+        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
+    },
+
+    // record data from this trial
+    on_finish: function(data) {
+        record_input_as_data(data);
+    }
+};
+
+var sports = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `
+        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
+            Category: Sports
+        </h2>
+        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
+            -
+        </h3>
+        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
+    `,
+    //key presses do not end the trial, only the timer
+    choices: "NO_KEYS", 
+    trial_duration: 60000, // 60 second trial
+
+    on_load: function() {
+        prepare_for_new_input('input_box');
+
+        // mark duration of trial for later use
+        const trial_duration = 60000;
+        // Get prime word text element
+        display_element = jsPsych.getDisplayElement();
+        var prime_word_text = display_element.querySelector('#prime_word');
+
+        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
+        const prime_words = [
+            {word: "-", start_time: 58},
+            {word: "Carcass", start_time: 50},
+            {word: "-", start_time: 40},
+            {word: "Ball", start_time: 25},
+            {word: "Smile", start_time: 10},
+            {word: "Stick", start_time: 5}
+        ];
+        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
+    },
+
+    // record data from this trial
+    on_finish: function(data) {
+        record_input_as_data(data);
+    }
+};
+
+//All trials in the experiment are run in sequence from the timeline list
+const timeline = [tutorial, animals, jobs, colors, sports];
 jsPsych.run(timeline);

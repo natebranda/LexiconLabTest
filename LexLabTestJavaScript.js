@@ -7,9 +7,17 @@
  * @author Nathaniel Branda
  */
 
-// GLOBAL variable that saves user's input strings, as on_finish runs after
+// GLOBAL variables:
+
+// Saves user's input strings, as on_finish runs after
 // the textarea's contents have been cleared.
 current_input = "";
+
+// Saves the start time of the current trial so that
+// the start times of prime words can be assigned 
+// relative to when their specific trial starts. 
+current_trial_start_time = performance.now();
+
 
 // initialize jsPsych library and object
 const jsPsych = initJsPsych({
@@ -35,7 +43,7 @@ function record_input_as_data(data) {
 /**
  * Clears current_input global variable and then
  * prepares textarea input box for more text by
- * giving it an event listener.
+ * giving it an event listener. 
  * 
  * @param {string} textarea_id the id of the input textarea element
  */
@@ -60,7 +68,8 @@ function prepare_for_new_input(textarea_id) {
 function display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration) {
     // set up interval to check trial timer for prime words
     const timer_interval = setInterval(function() {
-        let current_time = performance.now();
+        // measures time in milliseconds since the trial started
+        let current_time = performance.now() - current_trial_start_time;
         const next_prime_word = prime_words.at(-1);
         // modify start time to fit the actual millisecond timer
         next_appearance_time = next_prime_word.start_time * 1000;
@@ -70,7 +79,7 @@ function display_prime_words_in_sequence(prime_words, prime_word_text, trial_dur
         if (current_time >= next_appearance_time) {
             // display new word
             prime_word_text.innerHTML = next_word;
-            //remove next word
+            //remove word after it has been displayed
             prime_words.pop();
         }
     }, 100);
@@ -126,6 +135,7 @@ var animals = {
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
+        current_trial_start_time = performance.now();
         prepare_for_new_input('input_box');
 
         // mark duration of trial for later use
@@ -174,6 +184,7 @@ var jobs = {
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
+        current_trial_start_time = performance.now();
         prepare_for_new_input('input_box');
 
         // mark duration of trial for later use
@@ -214,6 +225,7 @@ var colors = {
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
+        current_trial_start_time = performance.now();
         prepare_for_new_input('input_box');
 
         // mark duration of trial for later use
@@ -255,6 +267,7 @@ var sports = {
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
+        current_trial_start_time = performance.now();
         prepare_for_new_input('input_box');
 
         // mark duration of trial for later use

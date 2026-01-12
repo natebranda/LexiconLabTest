@@ -29,7 +29,7 @@ function record_input_as_data(data) {
  * prepares textarea input box for more text by
  * giving it an event listener.
  * 
- * @param {string} textarea_id 
+ * @param {string} textarea_id the id of the input textarea element
  */
 function prepare_for_new_input(textarea_id) {
     // reset input for new trial
@@ -38,6 +38,40 @@ function prepare_for_new_input(textarea_id) {
     document.getElementById(textarea_id).addEventListener('input', (event) => {
         current_input = event.target.value;
     });
+}
+
+/**
+ * This function creates a timer interval which updates the currently 
+ * displayed prime word whenever the timer reaches the start time of
+ * the next prime word. It also clears the interval when the trial finishes.
+ * 
+ * @param {Array} prime_words a list of prime word objects to iterate through
+ * @param {string} prime_word_text the html text element used to show prime words
+ * @param {number} trial_duration the duration of the current trial
+ */
+function display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration) {
+    // set up interval to check trial timer for prime words
+    const timer_interval = setInterval(function() {
+        let current_time = performance.now();
+        const next_prime_word = prime_words.at(-1);
+        // modify start time to fit the actual millisecond timer
+        next_appearance_time = next_prime_word.start_time * 1000;
+        next_word = next_prime_word.word;
+        
+        // when we reach the start time of the next prime word:
+        if (current_time >= next_appearance_time) {
+            // display new word
+            prime_word_text.innerHTML = next_word;
+            //remove next word
+            prime_words.pop();
+        }
+    }, 100);
+    // ^^^ check runs every 0.1 seconds
+
+    // Ensure that interval is cleared when trial finishes
+    jsPsych.pluginAPI.setTimeout(function() {
+        clearInterval(timer_interval);
+    }, trial_duration);
 }
 
 // this trial shows the general display and teaches the user how to submit words
@@ -76,15 +110,12 @@ var animals = {
         <h1 style="margin-bottom: 90px; text-align: center; font-size: 60px">
             Verbal Fluency Test
         </h1>
-
         <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
             Category: Animals
         </h2>
-
         <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
             -
         </h3>
-
         <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
     `,
     //key presses do not end the trial, only the timer
@@ -96,7 +127,6 @@ var animals = {
 
         // mark duration of trial for later use
         const trial_duration = 60000;
-    
         // Get prime word text element
         display_element = jsPsych.getDisplayElement();
         var prime_word_text = display_element.querySelector('#prime_word');
@@ -116,35 +146,50 @@ var animals = {
         // simply add "-" as a word between two prime words with
         // a start time of when you want the first word to dissappear.
 
-        //display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration); ////////////////////////////
-        
-        // set up interval to check trial timer for prime words
-        const timer_interval = setInterval(function() {
-            let current_time = performance.now();
-            const next_prime_word = prime_words.at(-1);
-            // modify start time to fit the actual millisecond timer
-            next_appearance_time = next_prime_word.start_time * 1000;
-            next_word = next_prime_word.word;
-            
-            // when we reach the start time of the next prime word:
-            if (current_time >= next_appearance_time) {
-                // display new word
-                prime_word_text.innerHTML = next_word;
-                //remove next word
-                prime_words.pop();
-            }
+        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
+    },
 
-            // Clear interval when time runs out ////////////////////////////////////////////////////////////////////
-            //if (current_time >= trial_duration) {
-            //    clearInterval(timer_interval)
-            //}
-        }, 100);
-        // ^^^ check runs every 0.1 seconds
+    // record data from this trial
+    on_finish: function(data) {
+        record_input_as_data(data);
+    }
+};
 
-        // Ensure that interval is cleared when trial finishes
-        jsPsych.pluginAPI.setTimeout(function() {
-            clearInterval(timer_interval);
-        }, trial_duration);
+var jobs = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `
+        <h1 style="margin-bottom: 90px; text-align: center; font-size: 60px">
+            Verbal Fluency Test
+        </h1>
+        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
+            Category: Jobs
+        </h2>
+        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
+            -
+        </h3>
+        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
+    `,
+    //key presses do not end the trial, only the timer
+    choices: "NO_KEYS", 
+    trial_duration: 60000, // 60 second trial
+
+    on_load: function() {
+        prepare_for_new_input('input_box');
+
+        // mark duration of trial for later use
+        const trial_duration = 60000;
+        // Get prime word text element
+        display_element = jsPsych.getDisplayElement();
+        var prime_word_text = display_element.querySelector('#prime_word');
+
+        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
+        const prime_words = [
+            {word: "Trivial", start_time: 53},
+            {word: "Dangerous", start_time: 47},
+            {word: "Triple", start_time: 16},
+            {word: "Medical", start_time: 9}
+        ];
+        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
     },
 
     // record data from this trial

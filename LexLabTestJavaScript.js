@@ -9,15 +9,10 @@
 
 // GLOBAL variables:
 
-// Saves user's input strings, as on_finish runs after
-// the textarea's contents have been cleared.
-current_input = "";
-
 // Saves the start time of the current trial so that
-// the start times of prime words can be assigned 
+// the subit times of words can be assigned 
 // relative to when their specific trial starts. 
 current_trial_start_time = performance.now();
-
 
 // initialize jsPsych library and object
 const jsPsych = initJsPsych({
@@ -28,67 +23,38 @@ const jsPsych = initJsPsych({
 });
 
 /**
- * Modifies and places the current input recorded from
- * the textarea box as data into the given data object
- * for a jsPsych trial.
+ * Prepares textarea input box for more text and 
+ * for submitting words with enter by giving it 
+ * an event listener. Moreover, it initializes 
+ * the desired data objects for the current trial.
  * 
- * @param {object} data a jsPsych data object for a given trial
+ * @param {string} textarea_id The object id of the textarea element
+ * @param {Object[]} words_list A list of objects composed of user submitted
+ * words and the time they were submitted relative to the start of the trial.
  */
-function record_input_as_data(data) {
-    //split and add them to a list unless they are empty strings
-    data.words_list = current_input.split('\n').filter(Boolean);
-    data.number_of_words = data.words_list.length;
-}
-
-/**
- * Clears current_input global variable and then
- * prepares textarea input box for more text by
- * giving it an event listener. 
- * 
- * @param {string} textarea_id the id of the input textarea element
- */
-function prepare_for_new_input(textarea_id) {
-    // reset input for new trial
-    current_input = "";
+function prepare_new_trial(textarea_id, words_list) {
+    // get contents of input box
+    input_box = document.getElementById(textarea_id);
     // record text as it is typed
-    document.getElementById(textarea_id).addEventListener('input', (event) => {
-        current_input = event.target.value;
+    input_box.addEventListener('keydown', (event) => {
+        // Check if the key pressed is the 'Enter' key
+        if (event.key === 'Enter') {
+            // Prevent the default function of Enter key press
+            event.preventDefault();
+            //get string contents of input
+            contents = input_box.value;
+
+            //if the input is not empty
+            if (contents != "") {
+                //else, get time since start of trial
+                current_time = performance.now() - current_trial_start_time;
+                //add submitted word to data
+                words_list.push({word: contents, time: current_time});
+                //clear input box text
+                input_box.value = "";
+            }
+        } 
     });
-}
-
-/**
- * This function creates a timer interval which updates the currently 
- * displayed prime word whenever the timer reaches the start time of
- * the next prime word. It also clears the interval when the trial finishes.
- * 
- * @param {Array} prime_words a list of prime word objects to iterate through
- * @param {string} prime_word_text the html text element used to show prime words
- * @param {number} trial_duration the duration of the current trial
- */
-function display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration) {
-    // set up interval to check trial timer for prime words
-    const timer_interval = setInterval(function() {
-        // measures time in milliseconds since the trial started
-        let current_time = performance.now() - current_trial_start_time;
-        const next_prime_word = prime_words.at(-1);
-        // modify start time to fit the actual millisecond timer
-        next_appearance_time = next_prime_word.start_time * 1000;
-        next_word = next_prime_word.word;
-        
-        // when we reach the start time of the next prime word:
-        if (current_time >= next_appearance_time) {
-            // display new word
-            prime_word_text.innerHTML = next_word;
-            //remove word after it has been displayed
-            prime_words.pop();
-        }
-    }, 100);
-    // ^^^ check runs every 0.1 seconds
-
-    // Ensure that interval is cleared when trial finishes
-    jsPsych.pluginAPI.setTimeout(function() {
-        clearInterval(timer_interval);
-    }, trial_duration);
 }
 
 /// /// /// /// /// /// /// /// /// /// TRIALS /// /// /// /// /// /// /// /// /// ///
@@ -102,7 +68,7 @@ var tutorial = {
         </h2>
 
         <h3 style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
-            Prime Words will appear here
+            Prime Words will appear here. You will not be able to type when they are on screen.
         </h3>
 
         <textarea id="input-box" rows="1" cols="100" autofocus></textarea>
@@ -113,7 +79,7 @@ var tutorial = {
         </p>
 
         <p style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Press ENTER to start. You will have 60 seconds to enter words for each category.
+            Press ENTER to start. You will have 60 seconds to submit words for each category.
         </p>
     `,
     choices: ['Enter']
@@ -131,169 +97,32 @@ var animals = {
         <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
     `,
     //key presses do not end the trial, only the timer
-    choices: "NO_KEYS", 
+    choices: ['0'], //"NO_KEYS", ////////////////////////////////////////////////////////////////////////////////////////////////
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
+        // set start time
         current_trial_start_time = performance.now();
-        prepare_for_new_input('input_box');
+        //declare temporary holder for submitted words
+        words_list = [];
+        prepare_new_trial('input_box', words_list);
 
         // mark duration of trial for later use
-        const trial_duration = 60000;
-        // Get prime word text element
-        display_element = jsPsych.getDisplayElement();
-        var prime_word_text = display_element.querySelector('#prime_word');
+        //const trial_duration = 60000;         
+        // Get prime word element
+        //display_element = jsPsych.getDisplayElement();
+        //var prime_word_text = display_element.querySelector('#prime_word');
 
-        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
-        const prime_words = [
-            {word: "Trivial", start_time: 50},
-            {word: "Vermin", start_time: 37},
-            {word: "Atlas", start_time: 12},
-            {word: "Arctic", start_time: 3}
-        ];
-        // !** Each listed object is the desired prime word
-        // followed by the time in seconds (after the start
-        // of the trial) at which the word should appear. **!
-        // 
-        // To make the Prime Word "blank" inbetween two others,
-        // simply add "-" as a word between two prime words with
-        // a start time of when you want the first word to dissappear.
-
-        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
+        // set up Prime Words Stack
+        //const prime_words = [];
     },
 
-    // record data from this trial
     on_finish: function(data) {
-        record_input_as_data(data);
-    }
-};
-
-var jobs = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: `
-        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Category: Jobs
-        </h2>
-        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
-            -
-        </h3>
-        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
-    `,
-    //key presses do not end the trial, only the timer
-    choices: "NO_KEYS", 
-    trial_duration: 60000, // 60 second trial
-
-    on_load: function() {
-        current_trial_start_time = performance.now();
-        prepare_for_new_input('input_box');
-
-        // mark duration of trial for later use
-        const trial_duration = 60000;
-        // Get prime word text element
-        display_element = jsPsych.getDisplayElement();
-        var prime_word_text = display_element.querySelector('#prime_word');
-
-        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
-        const prime_words = [
-            {word: "Trivial", start_time: 53},
-            {word: "Dangerous", start_time: 47},
-            {word: "Triple", start_time: 16},
-            {word: "Medical", start_time: 9}
-        ];
-        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
-    },
-
-    // record data from this trial
-    on_finish: function(data) {
-        record_input_as_data(data);
-    }
-};
-
-var colors = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: `
-        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Category: Colors
-        </h2>
-        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
-            -
-        </h3>
-        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
-    `,
-    //key presses do not end the trial, only the timer
-    choices: "NO_KEYS", 
-    trial_duration: 60000, // 60 second trial
-
-    on_load: function() {
-        current_trial_start_time = performance.now();
-        prepare_for_new_input('input_box');
-
-        // mark duration of trial for later use
-        const trial_duration = 60000;
-        // Get prime word text element
-        display_element = jsPsych.getDisplayElement();
-        var prime_word_text = display_element.querySelector('#prime_word');
-
-        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
-        const prime_words = [
-            {word: "Dark", start_time: 53},
-            {word: "-", start_time: 43},
-            {word: "Music", start_time: 27},
-            {word: "-", start_time: 13},
-            {word: "Valuable", start_time: 3}
-        ];
-        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
-    },
-
-    // record data from this trial
-    on_finish: function(data) {
-        record_input_as_data(data);
-    }
-};
-
-var sports = {
-    type: jsPsychHtmlKeyboardResponse,
-    stimulus: `
-        <h2 style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Category: Sports
-        </h2>
-        <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
-            -
-        </h3>
-        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
-    `,
-    //key presses do not end the trial, only the timer
-    choices: "NO_KEYS", 
-    trial_duration: 60000, // 60 second trial
-
-    on_load: function() {
-        current_trial_start_time = performance.now();
-        prepare_for_new_input('input_box');
-
-        // mark duration of trial for later use
-        const trial_duration = 60000;
-        // Get prime word text element
-        display_element = jsPsych.getDisplayElement();
-        var prime_word_text = display_element.querySelector('#prime_word');
-
-        // set up Prime Words Stack with start times (latest at top, earliest at bottom)
-        const prime_words = [
-            {word: "-", start_time: 58},
-            {word: "Carcass", start_time: 50},
-            {word: "-", start_time: 40},
-            {word: "Ball", start_time: 25},
-            {word: "Smile", start_time: 10},
-            {word: "Stick", start_time: 5}
-        ];
-        display_prime_words_in_sequence(prime_words, prime_word_text, trial_duration);
-    },
-
-    // record data from this trial
-    on_finish: function(data) {
-        record_input_as_data(data);
+        data.words_list = words_list;
+        data.number_of_words = words_list.length;
     }
 };
 
 //All trials in the experiment are run in sequence from the timeline list
-const timeline = [tutorial, animals, jobs, colors, sports];
+const timeline = [tutorial, animals];
 jsPsych.run(timeline);

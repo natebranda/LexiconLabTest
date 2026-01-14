@@ -84,7 +84,7 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
 
             // 1. if a prime word was displayed, reset responses_until_prime_word
             // and then pass it to the event handler in the parent function.
-            return Math.floor((Math.random() * 4) + 3);
+            return Math.floor((Math.random() * 5) + 3);
         } else {
             // 2. if a prime word wasn't displayed, decrement before
             // passing it back to to the event handler.
@@ -99,6 +99,8 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
 /**
  * Prepares textarea input box for submitting words
  * with the Enter key by adding an event listener to it.
+ * It also gets the start time of the trial and initializes
+ * responses_until_prime_word as an integer between 3 and 7.
  * 
  * @param {string} input_box_id The object id of the textarea element.
  * @param {Object[]} words_list A list of objects composed of user submitted
@@ -109,8 +111,15 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
  * @param {number} responses_until_prime_word The number of responses left 
  * before a prime word appears.
  */
-function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words,
-    start_time, responses_until_prime_word) {
+function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words) {
+    // record start time of trial
+    let start_time = performance.now();
+
+    // Tracks how many responses are left until the next prime word should
+    // be displayed. It is initially set, and always reset, to a random
+    // integer between 3 and 7 (inclusive of both 3 and 7).
+    let responses_until_prime_word = Math.floor((Math.random() * 5) + 3);
+
     // get contents of input box
     input_box = document.getElementById(input_box_id);
     // record text as it is typed
@@ -175,12 +184,6 @@ var animals = {
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
-        // record start time of trial
-        let trial_start_time = performance.now();
-        // Tracks how many responses are left until the next prime word should
-        // be displayed. It is initially set, and always reset, to a random
-        // integer between 3 and 7 (inclusive).
-        let responses_until_prime_word = Math.floor((Math.random() * 4) + 3);
         //declare temporary holder for submitted words
         words_list = [];
 
@@ -201,8 +204,7 @@ var animals = {
             "MOUSE"
         ];
 
-        prepare_new_trial('input_box', words_list, '#prime_word', prime_words, trial_start_time,
-            responses_until_prime_word);
+        prepare_new_trial('input_box', words_list, '#prime_word', prime_words);
     },
 
     on_finish: function(data) {

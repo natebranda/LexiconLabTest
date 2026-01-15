@@ -19,24 +19,34 @@ const jsPsych = initJsPsych({
  * This helper function makes a random prime word appear
  * and then dissappear after 500 milliseconds. It also 
  * handles disabling the ability to type or enter responses
- * in the input text box.
+ * in the input text box. Lastly, it records every prime word
+ * that appears along with the time it appeared and dissappeared
+ * from the screen. 
  * 
  * @param {string} prime_word_id The id string of the HTML 
  * text element that displays prime words.
  * @param {string[]} prime_words A list of prime words to display.
  * @param {HTMLElement} input_box The input text box.
+ * @param {Object[]} displayed_prime_words A list of objects composed of prime
+ * words displayed to the user and when they appeared and dissappeared from view.
+ * @param {number} start_time The running time at which this trial started.
  */
-function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
+function handle_prime_word_appearance(prime_word_id, prime_words, input_box, 
+    displayed_prime_words, start_time) {
     // get prime word HTML text elements
     const display_element = jsPsych.getDisplayElement();
     const prime_word_text = display_element.querySelector(prime_word_id);
 
     //get random remaining prime word
-    const random_prime_word = prime_words[Math.floor(Math.random() * prime_words.length)];
+    const random_index = Math.floor(Math.random() * prime_words.length)
+    const random_prime_word = prime_words[random_index];
     // display word
     prime_word_text.innerHTML = random_prime_word;
     // disable ability to type in input box
     input_box.disabled = true;
+
+    //record when the word first appeared
+    const appearance = performance.now() - start_time;
 
     // wait 500 milliseconds
     setTimeout(() => {
@@ -44,6 +54,11 @@ function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
         prime_word_text.innerHTML = "";
         //reactivate input box
         input_box.disabled = false;
+        //record time of dissappearance
+        const dissappearance = performance.now() - start_time;
+        //record data in display
+        displayed_prime_words.push({word: random_prime_word, appeared: appearance,
+            dissappeared: dissappearance});
     }, 500)
 }
 
@@ -66,9 +81,14 @@ function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
  * @param {number} start_time The running time at which this trial started.
  * @param {number} responses_until_prime_word The number of responses left 
  * before a prime word appears.
+ * @param {Object[]} displayed_prime_words A list of objects composed of prime
+ * words displayed to the user and when they appeared and dissappeared from view.
+ * 
+ * @returns The updated value of responses_until_prime_word based based on whether
+ * or not the contents of the input are an empty string 
  */
 function submit_word(input_box, words_list, prime_word_id, prime_words, 
-    start_time, responses_until_prime_word) {
+    start_time, responses_until_prime_word, displayed_prime_words) {
     //get string contents of inputs
     const contents = input_box.value;
 
@@ -95,7 +115,8 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
         // If it is time for a prime word to appear AND if unguessed prime words remain
         if ((responses_until_prime_word == 0) && (prime_words.length > 0)) {
 
-            handle_prime_word_appearance(prime_word_id, prime_words, input_box);
+            handle_prime_word_appearance(prime_word_id, prime_words, input_box, 
+                displayed_prime_words, start_time);
 
             // 1. if a prime word was displayed, reset responses_until_prime_word
             // and then pass it to the event handler in the parent function.
@@ -122,8 +143,11 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
  * words and the time they were submitted relative to the start of the trial.
  * @param {string} prime_word_id The object id of the prime word text element.
  * @param {string[]} prime_words A list of prime words for the current trial.
+ * @param {Object[]} displayed_prime_words A list of objects composed of prime
+ * words displayed to the user and when they appeared and dissappeared from view.
  */
-function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words) {
+function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words,
+    displayed_prime_words) {
     // record start time of trial
     const start_time = performance.now();
 
@@ -141,9 +165,10 @@ function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words)
             // prevent the default function of Enter key press
             event.preventDefault();
             // submit contents to words list and get updated value of 
-            // responses_until_prime word with submit_word
+            // responses_until_prime word which submit_word returns
             responses_until_prime_word = submit_word(input_box, words_list, 
-                prime_word_id, prime_words, start_time, responses_until_prime_word);
+                prime_word_id, prime_words, start_time, responses_until_prime_word,
+                displayed_prime_words);
         } 
     });
 }
@@ -193,13 +218,17 @@ var animals = {
         </h3>
         <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
     `,
-    //key presses do not end the trial, only the timer
+    // key presses do not end the trial, only the timer
     choices: ["NO_KEYS"], 
     trial_duration: 60000, // 60 second trial
 
     on_load: function() {
-        //declare temporary holder for submitted words
+        // holder for submitted words and the time they were submitted
         words_list = [];
+
+        // holder for prime words displayed during the trial and when
+        // they appeared and then dissappeared from the screen.
+        displayed_prime_words = [];
 
         // set up Prime Words list 
         const prime_words = [
@@ -240,15 +269,16 @@ var animals = {
             "DEER"
         ];
 
-        prepare_new_trial('input_box', words_list, '#prime_word', prime_words);
+        prepare_new_trial('input_box', words_list, '#prime_word', prime_words, displayed_prime_words);
     },
 
     on_finish: function(data) {
         data.words_list = words_list;
         data.number_of_words = words_list.length;
+        data.prime_words = displayed_prime_words;
     }
 };
 
-//All trials in the experiment are run in sequence from the timeline list
+// All trials in the experiment are run in sequence from the timeline list
 const timeline = [tutorial, animals];
 jsPsych.run(timeline);

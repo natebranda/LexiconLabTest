@@ -123,7 +123,7 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
             return Math.floor((Math.random() * 5) + 3);
         } else {
             // 2. if a prime word wasn't displayed, decrement before
-            // passing it back to to the event handler.
+            // passing it back to the event handler.
             return responses_until_prime_word--;
         }
     } else {

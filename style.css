@@ -1,0 +1,6 @@
+textarea {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%; /* Set to halfway point in screen */
+}

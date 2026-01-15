@@ -190,14 +190,15 @@ var tutorial = {
             word appears. 
         </h3>
 
-        <textarea id="input-box" rows="1" cols="100" autofocus></textarea>
+        <textarea id="input-box" rows="2" cols="100" autofocus></textarea>
         
         <p style="margin-bottom: 10px; text-align: center; font-size: 30px">
             The text box immediately above is where you will type single word responses to 
             the aformentioned Category Words. These responses should be instances of the
             category word. <br> For exampe: If the category is "Jobs," you could enter "gardener,"
             "construction worker," or "doctor" as responses. <br>
-            Type a word and press ENTER to submit it. 
+            Type singular words and press the ENTER or RETURN key to submit them. 
+            Try to submit as many relevant words as possible. 
         </p>
 
         <p style="margin-bottom: 10px; text-align: center; font-size: 40px">
@@ -216,7 +217,7 @@ var animals = {
         <h3 id="prime_word" style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
             
         </h3>
-        <textarea id="input_box" rows="1" cols="100" autofocus></textarea>
+        <textarea id="input_box" rows="2" cols="100" autofocus></textarea>
     `,
     // key presses do not end the trial, only the timer
     choices: ["NO_KEYS"], 

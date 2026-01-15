@@ -16,6 +16,38 @@ const jsPsych = initJsPsych({
 });
 
 /**
+ * This helper function makes a random prime word appear
+ * and then dissappear after 500 milliseconds. It also 
+ * handles disabling the ability to type or enter responses
+ * in the input text box.
+ * 
+ * @param {string} prime_word_id The id string of the HTML 
+ * text element that displays prime words.
+ * @param {string[]} prime_words A list of prime words to display.
+ * @param {HTMLElement} input_box The input text box.
+ */
+function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
+    // get prime word HTML text elements
+    display_element = jsPsych.getDisplayElement();
+    var prime_word_text = display_element.querySelector(prime_word_id);
+
+    //get random remaining prime word
+    random_prime_word = prime_words[Math.floor(Math.random() * prime_words.length)];
+    // display word
+    prime_word_text.innerHTML = random_prime_word;
+    // disable ability to type in input box
+    input_box.disabled = true;
+
+    // wait 500 milliseconds
+    setTimeout(() => {
+        //then, remove prime word by setting it to empty string
+        prime_word_text.innerHTML = "";
+        //reactivate input box
+        input_box.disabled = false;
+    }, 500)
+}
+
+/**
  * This function adds the contents of the input box
  * and the time they were submitted to the words list.
  * It then clears the input box to make way for further
@@ -63,24 +95,7 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
         // If it is time for a prime word to appear AND if unguessed prime words remain
         if ((responses_until_prime_word == 0) && (prime_words.length > 0)) {
 
-            // get prime word HTML text elements
-            display_element = jsPsych.getDisplayElement();
-            var prime_word_text = display_element.querySelector(prime_word_id);
-
-            //get random remaining prime word
-            random_prime_word = prime_words[Math.floor(Math.random() * prime_words.length)];
-            // display word
-            prime_word_text.innerHTML = random_prime_word;
-            // disable ability to type in input box
-            input_box.disabled = true;
-
-            // wait 500 milliseconds
-            setTimeout(() => {
-                //then, remove prime word by setting it to empty string
-                prime_word_text.innerHTML = "";
-                //reactivate input box
-                input_box.disabled = false;
-            }, 500)
+            handle_prime_word_appearance(prime_word_id, prime_words, input_box);
 
             // 1. if a prime word was displayed, reset responses_until_prime_word
             // and then pass it to the event handler in the parent function.
@@ -107,9 +122,6 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
  * words and the time they were submitted relative to the start of the trial.
  * @param {string} prime_word_id The object id of the prime word text element.
  * @param {string[]} prime_words A list of prime words for the current trial.
- * @param {number} start_time The running time at which this trial started.
- * @param {number} responses_until_prime_word The number of responses left 
- * before a prime word appears.
  */
 function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words) {
     // record start time of trial

@@ -202,7 +202,8 @@ var tutorial = {
         </p>
 
         <p style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Press ENTER to start. You will have 60 seconds to submit words for each category.
+            Press the ENTER or RETURN key to start. 
+            You will have 60 seconds to submit words for each category.
         </p>
     `,
     choices: ['Enter']

@@ -169,7 +169,9 @@ var tutorial = {
         
         <p style="margin-bottom: 10px; text-align: center; font-size: 30px">
             The text box immediately above is where you will type single word responses to 
-            the aformentioned Category Words. <br>
+            the aformentioned Category Words. These responses should be instances of the
+            category word. <br> For exampe: If the category is "Jobs," you could enter "gardener,"
+            "construction worker," or "doctor" as responses. <br>
             Type a word and press ENTER to submit it. 
         </p>
 

@@ -28,11 +28,11 @@ const jsPsych = initJsPsych({
  */
 function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
     // get prime word HTML text elements
-    display_element = jsPsych.getDisplayElement();
-    var prime_word_text = display_element.querySelector(prime_word_id);
+    const display_element = jsPsych.getDisplayElement();
+    const prime_word_text = display_element.querySelector(prime_word_id);
 
     //get random remaining prime word
-    random_prime_word = prime_words[Math.floor(Math.random() * prime_words.length)];
+    const random_prime_word = prime_words[Math.floor(Math.random() * prime_words.length)];
     // display word
     prime_word_text.innerHTML = random_prime_word;
     // disable ability to type in input box
@@ -70,21 +70,21 @@ function handle_prime_word_appearance(prime_word_id, prime_words, input_box) {
 function submit_word(input_box, words_list, prime_word_id, prime_words, 
     start_time, responses_until_prime_word) {
     //get string contents of inputs
-    contents = input_box.value;
+    const contents = input_box.value;
 
     //if the input is not empty
     if (contents != "") {
         //mark that a response has occurred.
         responses_until_prime_word--;
         //get time since start of trial
-        current_time = performance.now() - start_time;
+        const current_time = performance.now() - start_time;
         //add submitted word to data
         words_list.push({word: contents, time: current_time});
         //clear input box text
         input_box.value = "";
 
         // Put contents in format of strings in prime words list
-        mod_contents = contents.trim().toUpperCase();
+        const mod_contents = contents.trim().toUpperCase();
         // check for submitted word in list of prime words
         const index = prime_words.indexOf(mod_contents);
         if (index > -1) {
@@ -125,22 +125,22 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
  */
 function prepare_new_trial(input_box_id, words_list, prime_word_id, prime_words) {
     // record start time of trial
-    let start_time = performance.now();
+    const start_time = performance.now();
 
     // Tracks how many responses are left until the next prime word should
-    // be displayed. It is initially set, and always reset, to a random
+    // be displayed. It is initially set, and later reset, to a random
     // integer between 3 and 7 (inclusive of both 3 and 7).
     let responses_until_prime_word = Math.floor((Math.random() * 5) + 3);
 
     // get contents of input box
-    input_box = document.getElementById(input_box_id);
+    const input_box = document.getElementById(input_box_id);
     // record text as it is typed
     input_box.addEventListener('keydown', (event) => {
         // check if the key pressed is the 'Enter' key
         if (event.key === 'Enter') {
             // prevent the default function of Enter key press
             event.preventDefault();
-            // submit contents to words list and get modified value of 
+            // submit contents to words list and get updated value of 
             // responses_until_prime word with submit_word
             responses_until_prime_word = submit_word(input_box, words_list, 
                 prime_word_id, prime_words, start_time, responses_until_prime_word);
@@ -202,7 +202,6 @@ var animals = {
         words_list = [];
 
         // set up Prime Words list 
-        // (NOTE: for a full version I would include a more exhaustive list)
         const prime_words = [
             "WALRUS",
             "ALLIGATOR",
@@ -215,7 +214,30 @@ var animals = {
             "PELICAN",
             "SEAGULL",
             "EAGLE",
-            "MOUSE"
+            "MOUSE",
+            "KANGAROO",
+            "AARDVARK",
+            "BULLFROG",
+            "ALBATROSS",
+            "PARROT",
+            "BEETLE",
+            "ROBIN",
+            "HUMMINGBIRD",
+            "ANTEATER",
+            "ANTELOPE",
+            "APE",
+            "BEE",
+            "BISON",
+            "CATFISH",
+            "BLUE JAY",
+            "SHARK",
+            "CAMEL",
+            "RAT",
+            "CHAMELEON",
+            "CICADA",
+            "TARANTULA",
+            "SNAKE",
+            "DEER"
         ];
 
         prepare_new_trial('input_box', words_list, '#prime_word', prime_words);

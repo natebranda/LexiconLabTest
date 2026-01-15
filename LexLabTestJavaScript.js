@@ -184,7 +184,7 @@ var tutorial = {
         </h2>
 
         <h3 style="margin-bottom: 10px; text-align: center; color:blue; font-size: 30px">
-            Prime Words will appear here. <br> 
+            Prime Words will appear here.
             You will not be able to type when they are on screen. <br>
             Remember: you will need to click the text box again to continue typing after a prime
             word appears. 
@@ -197,12 +197,12 @@ var tutorial = {
             the aformentioned Category Words. These responses should be instances of the
             category word. <br> For exampe: If the category is "Jobs," you could enter "gardener,"
             "construction worker," or "doctor" as responses. <br>
-            Type singular words and press the ENTER or RETURN key to submit them. 
+            Type singular words and press the ENTER or RETURN key to submit them. <br>
             Try to submit as many relevant words as possible. 
         </p>
 
         <p style="margin-bottom: 10px; text-align: center; font-size: 40px">
-            Press the ENTER or RETURN key to start. 
+            Press the ENTER or RETURN key to start. <br>
             You will have 60 seconds to submit words for each category.
         </p>
     `,

@@ -90,7 +90,9 @@ function handle_prime_word_appearance(prime_word_id, prime_words, input_box,
 function submit_word(input_box, words_list, prime_word_id, prime_words, 
     start_time, responses_until_prime_word, displayed_prime_words) {
     //get string contents of inputs
-    const contents = input_box.value;
+    const contents = input_box.value.trim();
+    //clear input box text
+    input_box.value = "";
 
     //if the input is not empty
     if (contents != "") {
@@ -100,11 +102,9 @@ function submit_word(input_box, words_list, prime_word_id, prime_words,
         const current_time = performance.now() - start_time;
         //add submitted word to data
         words_list.push({word: contents, time: current_time});
-        //clear input box text
-        input_box.value = "";
 
         // Put contents in format of strings in prime words list
-        const mod_contents = contents.trim().toUpperCase();
+        const mod_contents = contents.toUpperCase();
         // check for submitted word in list of prime words
         const index = prime_words.indexOf(mod_contents);
         if (index > -1) {
